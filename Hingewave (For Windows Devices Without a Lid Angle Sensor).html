@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duo kapak animasyonu demosu</title>
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;color:#fff;font-family:"Segoe UI",system-ui,sans-serif;background:radial-gradient(70% 45% at 50% 100%,#10203f,#04060b)}
+.screen{position:fixed;inset:0;transform-origin:50% 100%;will-change:transform}
+.desk{position:absolute;inset:0;overflow:hidden;background:
+ radial-gradient(55% 70% at 20% 100%,#ff8a5c 0,transparent 62%),
+ radial-gradient(60% 70% at 85% 5%,#b04bff 0,transparent 60%),
+ linear-gradient(160deg,#1a1347,#3b2a8c 60%,#6a3fb0)}
+.menu{position:absolute;left:0;right:0;top:0;height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:13px;background:rgba(255,255,255,.18);text-shadow:0 1px 4px rgba(0,0,0,.35);z-index:20}
+.menu b,.menu em{margin-right:18px;font-style:normal}
+.win{position:absolute;background:rgba(250,250,252,.94);color:#1d1d22;border-radius:12px;box-shadow:0 22px 60px rgba(0,0,0,.4);overflow:hidden;user-select:none}
+.win.closed{display:none}
+.bar{height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;font-size:13px;font-weight:600;background:#e9e9ee;cursor:grab}
+.bar:active{cursor:grabbing}
+.bar i{width:12px;height:12px;border-radius:50%;background:#ff5f57;cursor:pointer}
+.bar i+i{background:#febc2e;cursor:default}.bar i+i+i{background:#28c840;cursor:default}
+.bar span{margin:0 auto;transform:translateX(-22px);pointer-events:none}
+.w1{left:8%;top:14%;width:50%;height:56%;z-index:1}
+.w1 .body{display:flex;height:calc(100% - 38px)}
+.side{width:24%;padding:14px;background:#efeff3;display:flex;flex-direction:column;gap:10px}
+.side b{height:12px;border-radius:6px;background:#d3d3dc}
+.side b:first-child{background:#2d7cf0;width:70%}
+.grid{flex:1;padding:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-content:start}
+.grid u{aspect-ratio:1.2;border-radius:10px;background:linear-gradient(135deg,#ffd37a,#ffb02e)}
+.grid u:nth-child(3n){background:linear-gradient(135deg,#9ec8ff,#5a9bff)}
+.grid u:nth-child(4n){background:linear-gradient(135deg,#c9b6ff,#8c6cff)}
+.w2{right:9%;top:24%;width:28%;height:42%;z-index:2}
+.w2 .bar{background:#fbe9a6}
+.note{padding:16px 20px;display:flex;flex-direction:column;gap:12px;font-size:15px}
+.note h4{font-size:17px}
+.note p{display:flex;gap:10px;align-items:center}
+.note p:before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid #e0a800}
+.w3{left:22%;top:18%;width:38%;height:48%}
+.w4{left:28%;top:22%;width:34%;height:44%}
+.w5{left:34%;top:26%;width:32%;height:40%}
+.app-body{padding:20px;height:calc(100% - 38px);display:flex;flex-direction:column;gap:12px;font-size:14px;color:#333}
+.app-box{flex:1;border-radius:10px;background:#ebebf0;padding:14px;display:flex;flex-direction:column;gap:8px}
+.app-line{height:10px;border-radius:5px;background:#d2d2dc;width:85%}
+.app-line.short{width:55%}
+.dock{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:10px;padding:8px 12px;border-radius:20px;background:rgba(255,255,255,.28);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 10px 30px rgba(0,0,0,.3);z-index:20}
+.dock i{width:46px;height:46px;border-radius:11px;cursor:pointer;transition:transform .15s}
+.dock i:hover{transform:translateY(-4px) scale(1.06)}
+.dock i:active{transform:scale(.95)}
+.dock i:nth-child(1){background:linear-gradient(160deg,#59b7ff 50%,#fff 50%)}
+.dock i:nth-child(2){background:radial-gradient(circle,#fff 0 9%,#2b8cff 11%)}
+.dock i:nth-child(3){background:linear-gradient(#5be07a,#1fb84a)}
+.dock i:nth-child(4){background:linear-gradient(#ffe27a 28%,#fff 28%)}
+.dock i:nth-child(5){background:linear-gradient(#b9bcc6,#7d808c)}
+#frost,#dim{position:fixed;inset:0;pointer-events:none}
+.panel{position:fixed;z-index:30;top:42px;left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px;padding:10px 16px;border-radius:16px;background:rgba(18,20,28,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-size:13px}
+.panel label{display:flex;align-items:center;gap:10px}
+#out{display:inline-block;min-width:3.4em;font-variant-numeric:tabular-nums;font-weight:600}
+input[type=range]{width:200px;accent-color:#4a9bff}
+button{font:inherit;color:#fff;background:#2d6fe0;border:0;border-radius:9px;padding:7px 13px;cursor:pointer}
+button:hover{background:#3b80f5}
+button.alt{background:#343846}button.alt:hover{background:#434859}
+button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+small{flex-basis:100%;text-align:center;color:#a9afc0}
+</style>
+</head>
+<body>
+<div class="screen" id="screen">
+  <div class="desk">
+    <div class="menu"><span><b>Finder</b><em>Dosya</em><em>Düzen</em><em>Görünüm</em></span><span id="clock"></span></div>
+    
+    <div class="win w1" data-app="app1">
+      <div class="bar"><i data-close></i><i></i><i></i><span>Dokümanlar</span></div>
+      <div class="body">
+        <div class="side"><b></b><b></b><b></b><b></b><b></b></div>
+        <div class="grid"><u></u><u></u><u></u><u></u><u></u><u></u><u></u><u></u></div>
+      </div>
+    </div>
+
+    <div class="win w2" data-app="app4">
+      <div class="bar"><i data-close></i><i></i><i></i><span>Notlar</span></div>
+      <div class="note"><h4>Alışveriş listesi</h4><p>Süt</p><p>Ekmek</p><p>Zeytin</p><p>Çay</p></div>
+    </div>
+
+    <div class="win w3 closed" data-app="app2">
+      <div class="bar"><i data-close></i><i></i><i></i><span>Tarayıcı</span></div>
+      <div class="app-body">
+        <div style="height:28px;border-radius:7px;background:#e2e2e8;padding:0 12px;display:flex;align-items:center;color:#666;font-size:12px">https://ornek.sayfa</div>
+        <div class="app-box"><div class="app-line"></div><div class="app-line short"></div><div class="app-line"></div></div>
+      </div>
+    </div>
+
+    <div class="win w4 closed" data-app="app3">
+      <div class="bar"><i data-close></i><i></i><i></i><span>Mesajlar</span></div>
+      <div class="app-body">
+        <div class="app-box">
+          <div style="align-self:flex-start;background:#fff;padding:8px 12px;border-radius:10px">Selam, nasılsın?</div>
+          <div style="align-self:flex-end;background:#28c840;color:#fff;padding:8px 12px;border-radius:10px">İyiyim, teşekkürler!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="win w5 closed" data-app="app5">
+      <div class="bar"><i data-close></i><i></i><i></i><span>Ayarlar</span></div>
+      <div class="app-body">
+        <div class="app-box"><div class="app-line short"></div><div class="app-line"></div><div class="app-line"></div></div>
+      </div>
+    </div>
+
+    <div class="dock">
+      <i data-open="app1" title="Dokümanlar"></i>
+      <i data-open="app2" title="Tarayıcı"></i>
+      <i data-open="app3" title="Mesajlar"></i>
+      <i data-open="app4" title="Notlar"></i>
+      <i data-open="app5" title="Ayarlar"></i>
+    </div>
+  </div>
+</div>
+<div id="frost"></div>
+<div id="dim"></div>
+
+<div class="panel">
+  <span>Kapak açısı <b id="out">110°</b></span>
+  <button id="play">Kapat ve aç</button>
+  <button id="fs" class="alt">Tam ekran</button>
+  <small>↑ → açar · ↓ ← kapatır (basılı tut) · Boşluk kapat ve açar · F tam ekran</small>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const screenEl = $('#screen'), frost = $('#frost'), dim = $('#dim');
+const out = $('#out'), fsBtn = $('#fs'), playBtn = $('#play');
+const REST = 110, MAX = 135;
+const OPEN = ['ArrowUp', 'ArrowRight'], CLOSE = ['ArrowDown', 'ArrowLeft'], SPEED = 85;
+const held = new Set();
+let target = REST, cur = REST, vel = 0, shown = null, last = performance.now(), timer;
+
+function render() {
+  const p = Math.min(1, Math.max(0, (REST - cur) / REST));
+  const e = 0.5 * p + 0.5 * p * p * (3 - 2 * p);
+  screenEl.style.transform = `perspective(1400px) rotateX(${(e * 68).toFixed(2)}deg) scale(${(1 - e * 0.14).toFixed(3)})`;
+  if (e < 0.002) {
+    frost.style.webkitBackdropFilter = frost.style.backdropFilter = 'none';
+  } else {
+    const f = `blur(${(e * 26).toFixed(1)}px) saturate(${(1 + e * 0.4).toFixed(2)})`;
+    frost.style.webkitBackdropFilter = frost.style.backdropFilter = f;
+  }
+  const reach = e * 70;
+  const mask = `linear-gradient(to top,#000 0%,#000 ${reach.toFixed(1)}%,transparent ${Math.min(100, reach + 35).toFixed(1)}%)`;
+  frost.style.webkitMaskImage = frost.style.maskImage = mask;
+  dim.style.background = `linear-gradient(to top,rgba(0,0,0,${Math.min(1, e * 1.25).toFixed(3)}),rgba(0,0,0,${(e * e * 0.95).toFixed(3)}))`;
+  out.textContent = Math.round(cur) + '°';
+}
+
+function tick(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const dir = (OPEN.some(k => held.has(k)) ? 1 : 0) - (CLOSE.some(k => held.has(k)) ? 1 : 0);
+  if (dir) { clearTimeout(timer); target = Math.min(MAX, Math.max(0, target + dir * SPEED * dt)); }
+  const k = 90, c = 2 * Math.sqrt(k);
+  vel += (k * (target - cur) - c * vel) * dt;
+  cur += vel * dt;
+  if (Math.abs(target - cur) < 0.02 && Math.abs(vel) < 0.05) { cur = target; vel = 0; }
+  if (cur !== shown) { render(); shown = cur; }
+  requestAnimationFrame(tick);
+}
+
+function play() {
+  clearTimeout(timer); target = 0;
+  timer = setTimeout(() => { target = REST; }, 1500);
+}
+function toggleFs() {
+  try {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  } catch (err) { /* tam ekran bu tarayıcıda kullanılamıyor */ }
+}
+
+playBtn.addEventListener('click', () => { play(); playBtn.blur(); });
+fsBtn.addEventListener('click', () => { toggleFs(); fsBtn.blur(); });
+document.addEventListener('fullscreenchange', () => {
+  fsBtn.textContent = document.fullscreenElement ? 'Tam ekrandan çık' : 'Tam ekran';
+});
+addEventListener('keydown', e => {
+  if (OPEN.includes(e.key) || CLOSE.includes(e.key)) { e.preventDefault(); held.add(e.key); }
+  else if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) play(); }
+  else if ((e.key === 'f' || e.key === 'F') && !e.repeat) { toggleFs(); }
+});
+addEventListener('keyup', e => held.delete(e.key));
+addEventListener('blur', () => held.clear());
+
+function clock() {
+  const d = new Date();
+  $('#clock').textContent = d.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' }) +
+    '  ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+clock(); setInterval(clock, 30000);
+
+/* Pencere açma, kapatma, öne getirme ve sürükleme */
+let topZ = 5;
+function bringToFront(win) {
+  win.style.zIndex = ++topZ;
+}
+
+document.querySelectorAll('.dock i').forEach(icon => {
+  icon.addEventListener('click', () => {
+    const win = document.querySelector(`.win[data-app="${icon.dataset.open}"]`);
+    if (!win) return;
+    if (win.classList.contains('closed')) {
+      win.classList.remove('closed');
+      bringToFront(win);
+    } else if (Number(win.style.zIndex) < topZ) {
+      bringToFront(win);
+    } else {
+      win.classList.add('closed');
+    }
+  });
+});
+
+document.querySelectorAll('.win').forEach(win => {
+  win.addEventListener('mousedown', () => bringToFront(win));
+
+  const closeBtn = win.querySelector('[data-close]');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      win.classList.add('closed');
+    });
+  }
+
+  const bar = win.querySelector('.bar');
+  let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+
+  bar.addEventListener('mousedown', e => {
+    if (e.target.hasAttribute('data-close')) return;
+    dragging = true;
+    bringToFront(win);
+    const deskRect = win.parentElement.getBoundingClientRect();
+    const winRect = win.getBoundingClientRect();
+    origLeft = winRect.left - deskRect.left;
+    origTop = winRect.top - deskRect.top;
+    win.style.right = 'auto';
+    win.style.left = origLeft + 'px';
+    win.style.top = origTop + 'px';
+    startX = e.clientX;
+    startY = e.clientY;
+  });
+
+  addEventListener('mousemove', e => {
+    if (!dragging) return;
+    win.style.left = (origLeft + (e.clientX - startX)) + 'px';
+    win.style.top = Math.max(28, origTop + (e.clientY - startY)) + 'px';
+  });
+
+  addEventListener('mouseup', () => { dragging = false; });
+});
+
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
